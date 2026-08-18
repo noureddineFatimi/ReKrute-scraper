@@ -10,14 +10,18 @@ PASSWORD = PASSWORD
 def initialize_proxy_list(path="proxy-list.txt"):
     """Charge les proxies, un par ligne (format ip:port ou host:port)."""
     proxy_list = []
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            proxy = line.strip()  # FIX: sans strip(), chaque proxy contenait un "\n" -> invalide
-            if not proxy:
-                continue
-            if "://" not in proxy:
-                proxy = f"http://{proxy}"
-            proxy_list.append(proxy)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                proxy = line.strip()  # FIX: sans strip(), chaque proxy contenait un "\n" -> invalide
+                if not proxy:
+                    continue
+                if "://" not in proxy:
+                    proxy = f"http://{proxy}"
+                proxy_list.append(proxy)
+    except FileNotFoundError:
+        print(f"Fichier introuvable : {path}")
+        return []
     return proxy_list
 
 def get_link(post):
@@ -90,13 +94,14 @@ def fetch_with_retries(browser, url, proxy_list, wait_selector, extract_selector
 def get_property(beautifulSoupHtml, selector, multiple=False):
     if multiple:
         selections = beautifulSoupHtml.select(selector)
-        if len(selections) > 0:
-            element=""
-            for selection in selections:
-                selectionText=selection.get_text(separator="-", strip=True)
-                element=f"{element}-{selectionText}"
+        if selections:
+            elements = [
+                selection.get_text(separator="-", strip=True)
+                for selection in selections
+            ]
+            element = " - ".join(elements)
         else:
-            element="not_defined"
+            element = "not_defined"
     else:
         selection = beautifulSoupHtml.select_one(selector)
         element=selection.get_text(separator="-", strip=True) if selection else "not_defined"

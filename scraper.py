@@ -11,8 +11,8 @@ def get_jobs(listing_url, maxItems=10):
     url=listing_url
     proxy_list = utils.initialize_proxy_list()
     if not proxy_list:
-        print("Aucun proxy chargé depuis free-proxy-list.txt.")
-        return []
+        print("Aucun proxy chargé depuis proxy-list.txt.")
+        raise Exception("Proxies required")
 
     offers = []
     proxy_index = 0
@@ -76,6 +76,3 @@ def get_jobs(listing_url, maxItems=10):
         finally:
             browser.close()  # FIX: fermeture propre, plus de fuite de navigateurs
     return offers
-
-if __name__ == "__main__":
-    get_jobs("https://www.rekrute.com/fr/offres-emploi-informatique-electronique-fonction-13.html")
