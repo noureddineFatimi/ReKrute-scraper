@@ -12,9 +12,9 @@ def get_jobs_data():
             "error": "Invalid JSON body"
         }), 400
 
-    if not data:
+    if not data or not isinstance(data, dict):
         return jsonify({
-            "error": "Request body is required"
+            "error": "Request body must be a non-empty JSON object"
         }), 400
     
     url = data.get("url")
@@ -25,6 +25,12 @@ def get_jobs_data():
         }), 400
 
     maxItems = data.get("maxItems")
+
+    if maxItems is not None: #si un user entre 0 en maxItems qui est consideré falsy , et if maxItems sera false, mais en realité la valeur est fournie.
+        if not isinstance(maxItems, int) or isinstance(maxItems, bool) or maxItems <= 0:
+            return jsonify({
+            "error": "'maxItems' must be a positive integer"
+        }), 400
 
     try:
         jobs = get_jobs(url, maxItems) if maxItems else get_jobs(url)
