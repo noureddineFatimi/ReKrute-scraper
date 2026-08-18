@@ -1,43 +1,39 @@
-"""
-Scraper d'offres d'emploi Rekrute avec rotation de proxies (version corrigée).
-Voir la réponse dans le chat pour le détail de chaque correctif (repérable ici par "FIX:").
-"""
-
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 import utils
+import logging 
 
 def get_jobs(listing_url, maxItems=10): 
     url=listing_url
     proxy_list = utils.initialize_proxy_list()
     if not proxy_list:
-        print("Aucun proxy chargé depuis proxy-list.txt.")
-        raise Exception("Proxies required")
+        logging.error("Aucun proxy chargé depuis proxy-list.txt.")
+        raise RuntimeError("Proxies required")
 
     offers = []
     proxy_index = 0
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)  # FIX: un seul navigateur pour toute la session
+        browser = p.chromium.launch(headless=True)  
         try:
             while True:
-                print(f" ------- listing url: {url}------- ")
+                logging.info("listing url: %s", url)
                 listing_html, proxy_index = utils.fetch_with_retries(
                     browser, url, proxy_list, wait_selector="div.content-column", start_index=proxy_index
                 )
                 if not listing_html:
-                    print("Impossible de charger la page de listing avec les proxies disponibles.")
-                    raise Exception("All proxies failed")
+                    logging.error("Impossible de charger la page de listing avec les proxies disponibles")
+                    raise RuntimeError("All proxies failed")
                 listing_soup = BeautifulSoup(listing_html, "html.parser")
                 posts = listing_soup.find_all("li", class_="post-id")
-                print(f" ------- {len(posts)} offres trouvées sur la page de listing ------- ")
+                logging.info("%d offres trouvées sur la page de listing", len(posts))
 
                 for post in posts:
                     if len(offers) >= maxItems:
                         break
                     link = utils.get_link(post)
                     if not link:
-                        print(" ------- Lien introuvable pour une offre, on passe ------- ")
+                        logging.warning("Lien introuvable pour une offre, on passe")
                         continue
 
                     html, proxy_index = utils.fetch_with_retries(
@@ -50,22 +46,35 @@ def get_jobs(listing_url, maxItems=10):
                     if html:
                         soup=BeautifulSoup(html, "html.parser")
                         offer=utils.create_new_offer(beautifulSoupHtml=soup, link=link)
-                        print(f""" ------- OK 
-                            link: {link} \n
-                            titre: {offer["titre"]} \n
-                            sector: {offer["sector"]} \n
-                            experience: {offer["experience"]} \n
-                            region: {offer["region"]} \n
-                            formation: {offer["formation"]} \n
-                            competences personelles:{offer["competencesPersonnelles"]} \n
-                            contrat: {offer["contrat"]} \n
-                            teletravail: {offer["teletravail"]} \n
-                            dateLimite: {offer["dateLimite"]} \n
-                            description: {offer["description"]}
-                        -------""")
+                        logging.info(
+                            "------- OK -------\n"
+                            "link: %s\n"
+                            "titre: %s\n"
+                            "sector: %s\n"
+                            "experience: %s\n"
+                            "region: %s\n"
+                            "formation: %s\n"
+                            "competences personnelles: %s\n"
+                            "contrat: %s\n"
+                            "teletravail: %s\n"
+                            "dateLimite: %s\n"
+                            "description: %s\n"
+                            "------------------",
+                            link,
+                            offer["titre"],
+                            offer["sector"],
+                            offer["experience"],
+                            offer["region"],
+                            offer["formation"],
+                            offer["competencesPersonnelles"],
+                            offer["contrat"],
+                            offer["teletravail"],
+                            offer["dateLimite"],
+                            offer["description"],
+                    )
                         offers.append(offer)
                     else: 
-                        print(f" ------- html not founded for link : {link}")
+                        logging.warning("html not founded for link : %s", link)
                 if len(offers) >= maxItems:
                     break
                 next_page = listing_soup.find("a", class_="next")
@@ -74,5 +83,5 @@ def get_jobs(listing_url, maxItems=10):
                     continue
                 break                   
         finally:
-            browser.close()  # FIX: fermeture propre, plus de fuite de navigateurs
+            browser.close()  
     return offers

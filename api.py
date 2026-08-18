@@ -1,5 +1,8 @@
 from flask import Flask, jsonify, request
 from scraper import get_jobs
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 

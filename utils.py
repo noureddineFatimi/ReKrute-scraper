@@ -1,11 +1,14 @@
 import os
 import time
 from config import PROXY_USERNAME, PASSWORD
+import logging
 
 NAV_TIMEOUT = 20000  # proxies gratuits = souvent lents, 10s coupait trop court
 DEBUG_DIR = "debug_dumps"  # screenshot + HTML sauvegardés ici quand wait_for_selector échoue
 USERNAME = PROXY_USERNAME
 PASSWORD = PASSWORD
+
+logger = logging.getLogger(__name__)
 
 def initialize_proxy_list(path="proxy-list.txt"):
     """Charge les proxies, un par ligne (format ip:port ou host:port)."""
@@ -13,14 +16,14 @@ def initialize_proxy_list(path="proxy-list.txt"):
     try:
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
-                proxy = line.strip()  # FIX: sans strip(), chaque proxy contenait un "\n" -> invalide
+                proxy = line.strip()  # sans strip(), chaque proxy contenait un "\n" -> invalide
                 if not proxy:
                     continue
                 if "://" not in proxy:
                     proxy = f"http://{proxy}"
                 proxy_list.append(proxy)
     except FileNotFoundError:
-        print(f"Fichier introuvable : {path}")
+        logger.error("Fichier introuvable : %s", path)
         return []
     return proxy_list
 
@@ -47,7 +50,12 @@ def _dump_debug(page, url):
             f.write(page.content())
     except Exception:
         pass
-    print(f" ------- Debug sauvegardé : {base}.png / {base}.html (pour {url}) -------")
+    logger.debug(
+        "Debug sauvegardé : %s.png / %s.html (pour %s)",
+        base,
+        base,
+        url,
+    )
 
 def fetch_html(browser, url, proxy, wait_selector, extract_selector=None, timeout=NAV_TIMEOUT):
     """
@@ -82,13 +90,13 @@ def fetch_with_retries(browser, url, proxy_list, wait_selector, extract_selector
     """Essaie les proxies l'un après l'autre (en repartant de start_index) jusqu'à succès."""
     n = len(proxy_list)
     for attempt in range(n):
-        idx = (start_index + attempt) % n  # FIX: ne peut jamais sortir des bornes de proxy_list
+        idx = (start_index + attempt) % n  # ne peut jamais sortir des bornes de proxy_list
         proxy = proxy_list[idx]
         try:
             html = fetch_html(browser, url, proxy, wait_selector, extract_selector)
             return html, idx  # on repart de ce proxy au prochain appel, il vient de marcher
         except Exception as e:
-            print(f" ------- Proxy {proxy} en échec sur {url} : {e!r} -------")  # FIX: erreur visible
+            logger.warning("Proxy %s en échec sur %s : %r", proxy, url, e)  # erreur visible
     return None, start_index
 
 def get_property(beautifulSoupHtml, selector, multiple=False):
