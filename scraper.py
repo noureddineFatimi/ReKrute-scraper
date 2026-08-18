@@ -69,8 +69,8 @@ def get_jobs(listing_url, maxItems=10):
                 if len(offers) >= maxItems:
                     break
                 next_page = listing_soup.find("a", class_="next")
-                if next_page and next_page.get("href"):
-                    url = f"https://www.rekrute.com{next_page.get("href")}"
+                if next_page is not None and next_page.get("href") is not None:
+                    url = f"https://www.rekrute.com{next_page.get('href')}"
                     continue
                 break                   
         finally:
