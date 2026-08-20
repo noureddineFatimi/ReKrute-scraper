@@ -19,6 +19,9 @@ def initialize_proxy_list(path="proxy-list.txt"):
                 proxy = line.strip()  # sans strip(), chaque proxy contenait un "\n" -> invalide
                 if not proxy:
                     continue
+                if proxy == "DIRECT":
+                    proxy_list.append(proxy)
+                    continue
                 if "://" not in proxy:
                     proxy = f"http://{proxy}"
                 proxy_list.append(proxy)
@@ -66,20 +69,23 @@ def fetch_html(browser, url, proxy, wait_selector, extract_selector=None, timeou
     timeout...) pour que l'appelant sache exactement pourquoi et puisse changer de proxy.
     """
     extract_selector = extract_selector or wait_selector
-    context = browser.new_context(proxy={"server": proxy, "username": USERNAME, "password": PASSWORD})
+    context = browser.new_context() if proxy == "DIRECT" else browser.new_context(proxy={"server": proxy, "username": USERNAME, "password": PASSWORD})
     try:
         page = context.new_page()
         response = page.goto(url, timeout=timeout, wait_until="domcontentloaded")
         if response is not None and not response.ok:
+            logger.error("Bloacage de la part de ReKrute.")
             raise RuntimeError(f"HTTP {response.status} (probable blocage anti-bot)")
 
         try:
             page.wait_for_selector(wait_selector, timeout=timeout)
         except Exception:
             _dump_debug(page, url)
+            logger.error("Sélecteur %s inexistant apres durré de %d", wait_selector, NAV_TIMEOUT)
             raise
         html = page.inner_html(extract_selector)
         if not html or not html.strip():
+            logger.error("Sélecteur %s trouvé mais contenu vide", extract_selector)
             raise RuntimeError("sélecteur trouvé mais contenu vide")
         return html
     finally:

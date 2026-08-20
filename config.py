@@ -3,10 +3,13 @@ import logging
 from dotenv import load_dotenv
 
 load_dotenv()
-#wa9t twil dyel traitement,  ki b9a it3awd kolla mra ?
 
 PROXY_USERNAME = os.getenv("PROXY_USERNAME")
 PASSWORD = os.getenv("PASSWORD")
+DATABASE_URL=os.getenv("DATABASE_URL")
+PENDING = "pending" 
+DONE = "done"
+FAILED = "failed"
 
 if PROXY_USERNAME is None or PASSWORD is None:
     logging.error(
@@ -14,3 +17,10 @@ if PROXY_USERNAME is None or PASSWORD is None:
         "or in the environment variables."
     )
     raise RuntimeError("Proxy username or password is missing")
+
+if DATABASE_URL is None :
+    logging.error(
+        "database url is missing"
+    )
+    raise RuntimeError("database url is missing")
+
