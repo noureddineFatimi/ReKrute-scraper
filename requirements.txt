@@ -3,3 +3,4 @@ beautifulsoup4==4.15.0
 python-dotenv==1.2.3
 fastapi[standard]==0.141.1
 sqlmodel==0.0.39
+pylint==4.0.7
