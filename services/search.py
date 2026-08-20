@@ -4,7 +4,7 @@ from models.database import SearchJob
 from datetime import datetime
 from config import PENDING
 import threading
-from offer import run_scraping
+from .offer import run_scraping
 
 def start_scraping(search_id: int):
     """

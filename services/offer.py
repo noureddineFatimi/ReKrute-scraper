@@ -5,6 +5,10 @@ import logging
 from database import engine, get_session
 from models.database import Offer, SearchJob
 from config import FAILED, DONE
+from fastapi import HTTPException
+from sqlmodel import select
+from models.shemas import SearchResponse, OfferResponse
+
 def get_jobs(listing_url, maxItems=10): 
     url=listing_url
     proxy_list = utils.initialize_proxy_list()
@@ -165,3 +169,26 @@ def run_scraping(search_id: int):
             search.error = str(e)
 
             session.commit()
+
+def get_jobs_by_search_id(search_id):
+    with get_session() as session:
+        search = session.get(SearchJob, search_id)
+        if search is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Search not found"
+            )
+        
+        statement = select(Offer).where(
+            Offer.search_id == search_id
+        )
+
+        offers = session.exec(statement).all()
+
+        count = len(offers)
+
+        offersResponseList: list[OfferResponse] = [OfferResponse(**offer.__dict__) for offer in offers]
+
+        searchResponse = SearchResponse(search_id=search.id, status=search.status, count=count, offers=offersResponseList, error=search.error)
+        return searchResponse
+        

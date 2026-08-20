@@ -5,9 +5,12 @@ from services.search import create_search
 
 logging.basicConfig(level=logging.DEBUG)
 
-router = APIRouter(tags=["searching"])
+router = APIRouter(
+    prefix="/searches",
+    tags=["Searches"]
+)
 
-@router.post('/api/searches', response_model=SearchCreateResponse)
+@router.post("", response_model=SearchCreateResponse)
 def search(searchCreate: SearchCreate):
     try:
         searchCreateResponse = create_search(searchCreate=searchCreate)
