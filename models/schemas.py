@@ -1,9 +1,16 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 #post
 class SearchCreate(BaseModel):
     url: str
     maxItems: int = Field(default=10, ge=1)
+
+    @field_validator("url")
+    @classmethod
+    def must_be_rekrute(cls, v: str) -> str:
+        if not v.startswith("https://www.rekrute.com/"):
+            raise ValueError("L'URL doit pointer vers rekrute.com")
+        return v
 
 class SearchCreateResponse(BaseModel):
     search_id: int 

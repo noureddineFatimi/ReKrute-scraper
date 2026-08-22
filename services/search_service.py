@@ -7,7 +7,7 @@ import threading
 import logging 
 from database import get_session
 from models.database import Offer, SearchJob
-from config import FAILED, DONE
+from config import FAILED, DONE, RUNNING
 from fastapi import HTTPException
 from sqlmodel import select
 from models.schemas import SearchResponse, OfferResponse
@@ -56,23 +56,15 @@ def run_scraping(search_id: int):
             return
 
         try:
+            search.status = RUNNING
+            session.commit()
+            count = 0
             logging.info(
                 "Début du scraping pour search_id=%s",
                 search_id
             )
 
-            offers = get_jobs(
-                search.url,
-                search.max_items
-            )
-
-            logging.info(
-                "%d offres récupérées pour search_id=%s",
-                len(offers),
-                search_id
-            )
-
-            for offer_data in offers:
+            for offer_data in get_jobs(search.url, search.max_items):
 
                 offer = Offer(
                     search_id=search_id,
@@ -92,6 +84,8 @@ def run_scraping(search_id: int):
                 )
 
                 session.add(offer)
+                session.commit()
+                count += 1
 
             search.status = DONE
             search.error = None

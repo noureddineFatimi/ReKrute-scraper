@@ -27,13 +27,10 @@ def get_jobs_data_by_search_id(search_id: int):
     try:
         searchResponse = get_jobs_by_search_id(search_id=search_id)
         return searchResponse
-    except HTTPException as httpex:
-            raise HTTPException(
-                status_code=httpex.status_code,
-                detail=str(httpex)
-            )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=str(e)
-        )
+        ) from e

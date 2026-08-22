@@ -10,6 +10,7 @@ DATABASE_URL=os.getenv("DATABASE_URL")
 PENDING = "pending" 
 DONE = "done"
 FAILED = "failed"
+RUNNING = "running"
 
 if PROXY_USERNAME is None or PASSWORD is None:
     logging.error(

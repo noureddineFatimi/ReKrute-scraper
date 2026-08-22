@@ -10,7 +10,7 @@ def get_jobs(listing_url, maxItems=10):
         logging.error("Aucun proxy chargé depuis proxy-list.txt.")
         raise RuntimeError("Proxies required")
 
-    offers = []
+    count = 0
     proxy_index = 0
 
     with sync_playwright() as p:
@@ -29,7 +29,7 @@ def get_jobs(listing_url, maxItems=10):
                 logging.info("%d offres trouvées sur la page de listing", len(posts))
 
                 for post in posts:
-                    if len(offers) >= maxItems:
+                    if count >= maxItems:
                         break
                     link = utils.get_link(post)
                     if not link:
@@ -72,10 +72,11 @@ def get_jobs(listing_url, maxItems=10):
                             offer["dateLimite"],
                             offer["description"],
                     )
-                        offers.append(offer)
+                        count+=1
+                        yield offer
                     else: 
                         logging.warning("html not founded for link : %s", link)
-                if len(offers) >= maxItems:
+                if count >= maxItems:
                     break
                 next_page = listing_soup.find("a", class_="next")
                 if next_page is not None and next_page.get("href") is not None:
@@ -83,5 +84,4 @@ def get_jobs(listing_url, maxItems=10):
                     continue
                 break                   
         finally:
-            browser.close()  
-    return offers
+            browser.close()
