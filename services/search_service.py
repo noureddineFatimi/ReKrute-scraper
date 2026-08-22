@@ -1,12 +1,10 @@
 from models.schemas import SearchCreate, SearchCreateResponse
-from database import get_session
-from models.database import SearchJob
+from models.database import SearchJob, Offer
 from datetime import datetime
 from config import PENDING
 import threading
 import logging 
 from database import get_session
-from models.database import Offer, SearchJob
 from config import FAILED, DONE, RUNNING
 from fastapi import HTTPException
 from sqlmodel import select
