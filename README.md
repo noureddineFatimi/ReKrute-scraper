@@ -35,6 +35,11 @@ The repository is organized into several modules:
 
 Initiates a new scraping job for a given `rekrute.com` URL. The job is processed in the background.
 
+<p align="center">
+  <img src="image1.png" alt="Database Schema" width="700">
+</p>
+<p align="center"><em>Searching trigger endpoint</em></p>
+
 -   **Endpoint**: `POST /searches`
 -   **Request Body**:
     ```json
@@ -54,6 +59,11 @@ Initiates a new scraping job for a given `rekrute.com` URL. The job is processed
 ### Retrieve Scraping Job Results
 
 Fetches the status and results of a specific scraping job by its ID.
+
+<p align="center">
+  <img src="image2.png" alt="Database Schema" width="700">
+</p>
+<p align="center"><em>Fetching offers endpoint</em></p>
 
 -   **Endpoint**: `GET /searches/{search_id}`
 -   **Success Response** (`200 OK`):
@@ -81,6 +91,20 @@ Fetches the status and results of a specific scraping job by its ID.
         "error": null
     }
     ```
+
+<p align="center">
+  <img src="image3.png" alt="Database Schema" width="700">
+</p>
+<p align="center"><em>Offers retrieved</em></p>
+
+## SQLITE Database
+
+The database manager is sqlite, with two tables offers, and search_offers.
+
+<p align="center">
+  <img src="image.png" alt="Database Schema" width="700">
+</p>
+<p align="center"><em>Offers table</em></p>
 
 ## Installation and Usage
 
